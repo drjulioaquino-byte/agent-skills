@@ -1,0 +1,81 @@
+apiVersion: agentos/v1
+kind: AgentOS
+metadata:
+  name: agentos-core
+  version: 1.0.0
+spec:
+  principles:
+    - least_privilege
+    - explicit_authority
+    - independent_verification
+    - reversible_by_default
+    - evidence_over_assertion
+    - no_self_approval
+    - skills_are_untrusted_until_reviewed
+
+  core_agents:
+    guardian:
+      always_on: true
+      authority: constitutional
+    orchestrator:
+      always_on: true
+      authority: coordination
+    observer:
+      always_on: true
+      authority: audit
+    librarian:
+      always_on: true
+      authority: memory
+
+  ephemeral_agents:
+    - architect
+    - researcher
+    - builder
+    - verifier
+    - evaluator
+    - red_team
+    - operator
+    - recovery
+    - skill_scout
+    - domain_expert
+
+  registries:
+    agents: ./agents
+    skills: ../skills
+    contracts: ./contracts
+    policies: ./constitution
+    workflows: ./workflows
+
+  execution:
+    default_workflow: ./workflows/default.workflow.yaml
+    max_revision_loops: 3
+    parallelism: controlled
+    require_verification: true
+    require_postflight_guardian: true
+
+  skill_discovery:
+    enabled: true
+    agent: skill_scout
+    install_mode: proposal_only
+    sources:
+      - github
+      - local_registry
+    require_guardian_approval: true
+    pin_source_revision: true
+
+  memory:
+    direct_persistent_write_by_workers: false
+    require_librarian_review: true
+    require_guardian_for_sensitive_memory: true
+
+  observability:
+    trace_all_handoffs: true
+    record_tool_calls: true
+    record_policy_decisions: true
+    record_verification_evidence: true
+
+  project_overlay:
+    optional_paths:
+      - .agentos/project.yaml
+      - .agentos/policies
+      - .agentos/skills.allowlist.yaml
