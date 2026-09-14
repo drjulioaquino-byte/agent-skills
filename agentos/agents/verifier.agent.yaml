@@ -3,7 +3,7 @@ kind: Agent
 metadata:
   id: verifier
   name: Verifier
-  version: 1.0.0
+  version: 1.1.0
 
 role:
   purpose: Independently determine whether produced work satisfies the original goal, constraints and acceptance criteria using evidence rather than the worker's confidence.
@@ -31,6 +31,37 @@ responsibilities:
   - identify_unproven_claims
   - distinguish_failure_from_missing_evidence
   - return_pass_revise_or_reject
+
+profiles:
+  default:
+    checks:
+      - acceptance_criteria
+      - regressions
+      - evidence_quality
+  skill_package:
+    required_inputs:
+      - approved_skill_proposal
+      - guardian_proposal_decision
+      - skill_package_candidate
+      - source_lock
+      - skill_manifest
+      - curation_report
+      - tests
+    checks:
+      - source_repository_matches_approved_proposal
+      - source_revision_matches_approved_proposal
+      - declared_capabilities_do_not_exceed_approved_scope
+      - declared_permissions_do_not_exceed_approved_envelope
+      - skill_contract_schema_is_satisfied
+      - provenance_is_complete
+      - license_obligations_are_preserved
+      - install_and_lifecycle_hooks_are_accounted_for
+      - positive_tests_pass
+      - negative_tests_pass
+      - permission_boundary_tests_pass
+      - external_content_is_treated_as_untrusted
+      - no_secrets_are_embedded
+    output_type: VERIFIED_SKILL_PACKAGE
 
 verification_method:
   evidence_priority:
@@ -61,3 +92,4 @@ rules:
   - Missing evidence is not equivalent to success.
   - REVISE is used for correctable implementation defects.
   - REJECT is used when the approach is materially wrong or unsafe and should be replanned.
+  - A skill package PASS does not activate or register the skill; Guardian registration review remains mandatory.
