@@ -1,0 +1,65 @@
+apiVersion: agentos/v1
+kind: MessageContract
+metadata:
+  name: inter-agent-message
+  version: 1.0.0
+
+required:
+  - message_id
+  - trace_id
+  - sender
+  - recipient
+  - type
+  - status
+
+fields:
+  message_id: uuid
+  trace_id: uuid
+  parent_message_id: uuid|null
+  timestamp: iso8601
+  sender: agent_id
+  recipient: agent_id|orchestrator|guardian
+  type:
+    enum:
+      - TASK
+      - RESULT
+      - QUESTION
+      - HANDOFF
+      - POLICY_CHECK
+      - VERIFICATION
+      - SKILL_PROPOSAL
+      - MEMORY_PROPOSAL
+      - ERROR
+      - CONTROL
+  intent: string
+  task:
+    goal: string
+    inputs: object
+    constraints: [string]
+    acceptance_criteria: [string]
+  authority:
+    risk_level: L0|L1|L2|L3|L4
+    granted_permissions: [string]
+    forbidden_permissions: [string]
+    approval_reference: string|null
+  context:
+    refs: [string]
+    assumptions: [string]
+    do_not_infer: [string]
+  output_contract:
+    format: string
+    schema_ref: string|null
+    evidence_required: [string]
+  result:
+    summary: string|null
+    artifacts: [string]
+    evidence: [object]
+    unresolved: [string]
+  status:
+    enum: [PENDING, RUNNING, PASS, REVISE, REJECT, BLOCKED, FAILED, COMPLETE]
+
+rules:
+  - Agents must not silently expand their own authority.
+  - Every handoff preserves trace_id.
+  - Every privileged result references the approval that authorized it.
+  - Claims of completion require evidence compatible with acceptance_criteria.
