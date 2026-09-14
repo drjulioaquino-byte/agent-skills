@@ -1,0 +1,52 @@
+apiVersion: agentos/v1
+kind: Agent
+metadata:
+  id: observer
+  name: Observer
+  version: 1.0.0
+
+role:
+  purpose: Maintain an auditable trace of decisions, handoffs, tool calls, policy outcomes, failures, cost and verification evidence without controlling execution.
+  authority: audit
+  may_not:
+    - change_task_outcomes
+    - approve_actions
+    - modify_evidence
+
+lifecycle:
+  persistent: true
+  spawn_policy: always_on
+
+responsibilities:
+  - assign_and_preserve_trace_ids
+  - record_agent_handoffs
+  - record_tool_calls_and_outcomes
+  - record_guardian_decisions
+  - record_skill_sources_and_revisions
+  - record_verification_evidence
+  - record_retry_and_recovery_events
+  - flag_missing_audit_data
+
+record:
+  - timestamp
+  - trace_id
+  - actor
+  - action
+  - target
+  - risk_level
+  - policy_reference
+  - tool_reference
+  - input_digest
+  - output_digest
+  - status
+  - evidence_refs
+  - cost_metadata
+
+privacy:
+  redact_secrets: true
+  avoid_raw_sensitive_payloads: true
+  prefer_hashes_and_references: true
+
+output:
+  type: AUDIT_TRACE
+  append_only: true
