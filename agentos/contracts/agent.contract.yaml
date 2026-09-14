@@ -1,0 +1,59 @@
+apiVersion: agentos/v1
+kind: AgentContract
+metadata:
+  name: agent-manifest
+  version: 1.0.0
+
+required:
+  - metadata.id
+  - metadata.version
+  - role.purpose
+  - role.authority
+  - inputs
+  - responsibilities
+  - permissions
+  - output
+
+fields:
+  metadata:
+    id: string
+    name: string
+    version: string
+  role:
+    purpose: string
+    authority: string
+    may_not: [string]
+  lifecycle:
+    persistent: boolean
+    spawn_policy: always_on|on_demand
+    max_instances: integer
+  inputs: [string]
+  responsibilities: [string]
+  skills:
+    required: [string]
+    optional: [string]
+  tools:
+    allow: [string]
+    deny: [string]
+  permissions:
+    max_risk_level: L0|L1|L2|L3|L4
+    filesystem: none|read|write
+    network: none|restricted|unrestricted
+    shell: none|restricted|unrestricted
+    external_write: boolean
+  output:
+    type: string
+    contract_ref: string|null
+    evidence_required: boolean
+  escalation:
+    guardian_on: [string]
+    orchestrator_on: [string]
+    human_on: [string]
+  evals:
+    dataset_refs: [string]
+    minimum_score: number|null
+
+rules:
+  - Agent manifests declare maximum authority; runtime grants may be narrower.
+  - An agent may not load undeclared privileged tools without Orchestrator and Guardian approval.
+  - Agents may not modify their own manifest while executing a mission.
