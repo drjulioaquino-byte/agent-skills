@@ -1,0 +1,98 @@
+apiVersion: agentos/v1
+kind: Workflow
+metadata:
+  id: default
+  version: 1.0.0
+
+states:
+  - INTAKE
+  - GUARDIAN_PREFLIGHT
+  - PLAN
+  - CAPABILITY_CHECK
+  - SKILL_DISCOVERY
+  - SKILL_REVIEW
+  - ASSEMBLE_TEAM
+  - EXECUTE
+  - VERIFY
+  - REVISE
+  - RECOVER
+  - GUARDIAN_POSTFLIGHT
+  - MEMORY_COMMIT
+  - COMPLETE
+  - BLOCKED
+  - FAILED
+
+transitions:
+  - from: INTAKE
+    to: GUARDIAN_PREFLIGHT
+  - from: GUARDIAN_PREFLIGHT
+    on: ALLOW
+    to: PLAN
+  - from: GUARDIAN_PREFLIGHT
+    on: REQUIRE_APPROVAL
+    to: BLOCKED
+  - from: GUARDIAN_PREFLIGHT
+    on: DENY
+    to: FAILED
+  - from: PLAN
+    to: CAPABILITY_CHECK
+  - from: CAPABILITY_CHECK
+    on: CAPABILITIES_AVAILABLE
+    to: ASSEMBLE_TEAM
+  - from: CAPABILITY_CHECK
+    on: CAPABILITY_GAP
+    to: SKILL_DISCOVERY
+  - from: SKILL_DISCOVERY
+    on: CANDIDATE_FOUND
+    to: SKILL_REVIEW
+  - from: SKILL_DISCOVERY
+    on: NO_SAFE_CANDIDATE
+    to: PLAN
+  - from: SKILL_REVIEW
+    on: APPROVED
+    to: ASSEMBLE_TEAM
+  - from: SKILL_REVIEW
+    on: REJECTED
+    to: PLAN
+  - from: ASSEMBLE_TEAM
+    to: EXECUTE
+  - from: EXECUTE
+    to: VERIFY
+  - from: VERIFY
+    on: PASS
+    to: GUARDIAN_POSTFLIGHT
+  - from: VERIFY
+    on: REVISE
+    to: REVISE
+  - from: VERIFY
+    on: REJECT
+    to: PLAN
+  - from: VERIFY
+    on: BLOCKED
+    to: RECOVER
+  - from: REVISE
+    on: UNDER_RETRY_LIMIT
+    to: EXECUTE
+  - from: REVISE
+    on: RETRY_LIMIT_EXCEEDED
+    to: RECOVER
+  - from: RECOVER
+    on: NEW_STRATEGY
+    to: PLAN
+  - from: RECOVER
+    on: HUMAN_REQUIRED
+    to: BLOCKED
+  - from: GUARDIAN_POSTFLIGHT
+    on: ALLOW
+    to: MEMORY_COMMIT
+  - from: GUARDIAN_POSTFLIGHT
+    on: REQUIRE_REVISION
+    to: PLAN
+  - from: MEMORY_COMMIT
+    to: COMPLETE
+
+invariants:
+  - COMPLETE is unreachable without VERIFY PASS.
+  - COMPLETE is unreachable without GUARDIAN_POSTFLIGHT ALLOW.
+  - External skill execution is unreachable before SKILL_REVIEW APPROVED.
+  - Observer trace remains active for every transition.
