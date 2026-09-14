@@ -2,7 +2,7 @@ apiVersion: agentos/v1
 kind: AgentOS
 metadata:
   name: agentos-core
-  version: 1.0.0
+  version: 1.1.0
 spec:
   principles:
     - least_privilege
@@ -12,6 +12,8 @@ spec:
     - evidence_over_assertion
     - no_self_approval
     - skills_are_untrusted_until_reviewed
+    - source_approval_is_not_execution_approval
+    - provenance_is_immutable
 
   core_agents:
     guardian:
@@ -37,6 +39,7 @@ spec:
     - operator
     - recovery
     - skill_scout
+    - skill_curator
     - domain_expert
 
   registries:
@@ -55,13 +58,24 @@ spec:
 
   skill_discovery:
     enabled: true
-    agent: skill_scout
-    install_mode: proposal_only
+    scout_agent: skill_scout
+    scout_mode: proposal_only
     sources:
       - github
       - local_registry
-    require_guardian_approval: true
+    require_guardian_source_approval: true
     pin_source_revision: true
+
+  skill_curation:
+    enabled: true
+    curator_agent: skill_curator
+    require_approved_proposal: true
+    preserve_source_revision: true
+    forbid_permission_expansion: true
+    require_skill_contract: ./contracts/skill.contract.yaml
+    require_verifier_pass: true
+    require_guardian_registration_approval: true
+    activation_before_registration: false
 
   memory:
     direct_persistent_write_by_workers: false
@@ -73,6 +87,8 @@ spec:
     record_tool_calls: true
     record_policy_decisions: true
     record_verification_evidence: true
+    record_skill_provenance: true
+    record_skill_curation_diffs: true
 
   project_overlay:
     optional_paths:
