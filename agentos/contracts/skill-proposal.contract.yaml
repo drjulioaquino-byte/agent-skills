@@ -1,0 +1,66 @@
+apiVersion: agentos/v1
+kind: SkillProposalContract
+metadata:
+  name: skill-proposal
+  version: 1.0.0
+
+required:
+  - proposal_id
+  - capability_gap
+  - project_context
+  - candidates
+  - recommended_candidate
+  - source
+  - permissions_requested
+  - risk
+  - evidence
+  - proposed_tests
+  - recommendation
+
+fields:
+  proposal_id: string
+  capability_gap: string
+  project_context:
+    goal: string
+    stack: [string]
+    existing_skills_checked: [string]
+  candidates:
+    type: array
+    items:
+      repository: string
+      revision: commit_sha|immutable_release
+      license: string|null
+      score: number
+      concerns: [string]
+  recommended_candidate:
+    repository: string
+    revision: commit_sha|immutable_release
+    rationale: string
+  source:
+    repository: string
+    revision: commit_sha|immutable_release
+    path: string|null
+  permissions_requested:
+    filesystem: none|read|write
+    network: none|restricted|unrestricted
+    shell: none|restricted|unrestricted
+    secrets: none|references_only
+    external_write: boolean
+  risk:
+    level: L0|L1|L2|L3|L4
+    reasons: [string]
+  evidence:
+    docs_reviewed: boolean
+    license_reviewed: boolean
+    dependency_files_reviewed: boolean
+    install_hooks_reviewed: boolean
+    tests_reviewed: boolean
+    issues_signal_reviewed: boolean
+    notes: [string]
+  proposed_tests: [string]
+  recommendation: APPROVE_FOR_CURATION|REJECT|QUARANTINE|NO_SAFE_CANDIDATE
+
+decision_boundary:
+  - A proposal approves only a source, revision, capability scope and maximum permission envelope.
+  - Proposal approval does not authorize execution or installation.
+  - Any source, revision, capability or permission change invalidates the approval and requires a new proposal.
