@@ -2,7 +2,7 @@ apiVersion: agentos/v1
 kind: Workflow
 metadata:
   id: default
-  version: 1.0.0
+  version: 1.1.0
 
 states:
   - INTAKE
@@ -10,7 +10,10 @@ states:
   - PLAN
   - CAPABILITY_CHECK
   - SKILL_DISCOVERY
-  - SKILL_REVIEW
+  - SKILL_PROPOSAL_REVIEW
+  - SKILL_CURATION
+  - SKILL_VALIDATION
+  - SKILL_REGISTRATION_REVIEW
   - ASSEMBLE_TEAM
   - EXECUTE
   - VERIFY
@@ -42,18 +45,54 @@ transitions:
   - from: CAPABILITY_CHECK
     on: CAPABILITY_GAP
     to: SKILL_DISCOVERY
+
   - from: SKILL_DISCOVERY
     on: CANDIDATE_FOUND
-    to: SKILL_REVIEW
+    to: SKILL_PROPOSAL_REVIEW
   - from: SKILL_DISCOVERY
     on: NO_SAFE_CANDIDATE
     to: PLAN
-  - from: SKILL_REVIEW
-    on: APPROVED
-    to: ASSEMBLE_TEAM
-  - from: SKILL_REVIEW
+
+  - from: SKILL_PROPOSAL_REVIEW
+    on: APPROVED_FOR_CURATION
+    to: SKILL_CURATION
+  - from: SKILL_PROPOSAL_REVIEW
     on: REJECTED
     to: PLAN
+  - from: SKILL_PROPOSAL_REVIEW
+    on: QUARANTINED
+    to: PLAN
+
+  - from: SKILL_CURATION
+    on: PACKAGE_CANDIDATE_READY
+    to: SKILL_VALIDATION
+  - from: SKILL_CURATION
+    on: SCOPE_CHANGE_REQUIRED
+    to: SKILL_DISCOVERY
+  - from: SKILL_CURATION
+    on: CURATION_FAILED
+    to: PLAN
+
+  - from: SKILL_VALIDATION
+    on: PASS
+    to: SKILL_REGISTRATION_REVIEW
+  - from: SKILL_VALIDATION
+    on: REVISE
+    to: SKILL_CURATION
+  - from: SKILL_VALIDATION
+    on: REJECT
+    to: PLAN
+
+  - from: SKILL_REGISTRATION_REVIEW
+    on: APPROVED
+    to: ASSEMBLE_TEAM
+  - from: SKILL_REGISTRATION_REVIEW
+    on: REJECTED
+    to: PLAN
+  - from: SKILL_REGISTRATION_REVIEW
+    on: REQUIRE_HUMAN_APPROVAL
+    to: BLOCKED
+
   - from: ASSEMBLE_TEAM
     to: EXECUTE
   - from: EXECUTE
@@ -91,8 +130,19 @@ transitions:
   - from: MEMORY_COMMIT
     to: COMPLETE
 
+skill_supply_chain:
+  discoverer: skill_scout
+  source_approval: guardian
+  packager: skill_curator
+  package_validator: verifier
+  registration_approval: guardian
+
 invariants:
   - COMPLETE is unreachable without VERIFY PASS.
   - COMPLETE is unreachable without GUARDIAN_POSTFLIGHT ALLOW.
-  - External skill execution is unreachable before SKILL_REVIEW APPROVED.
+  - Skill Scout cannot curate, install, register or activate skills.
+  - Skill Curator cannot select a different source or expand permissions without a new proposal.
+  - Skill Curator cannot approve or register its own package.
+  - External skill execution is unreachable before SKILL_VALIDATION PASS and SKILL_REGISTRATION_REVIEW APPROVED.
+  - Source approval and package approval are separate Guardian decisions.
   - Observer trace remains active for every transition.
