@@ -1,0 +1,64 @@
+apiVersion: agentos/v1
+kind: Agent
+metadata:
+  id: orchestrator
+  name: Orchestrator
+  version: 1.0.0
+
+role:
+  purpose: Convert an approved mission into a controlled task graph and coordinate agents, skills and tools until verified completion.
+  authority: coordination
+  may_not:
+    - override_guardian
+    - self_approve_privileged_actions
+    - declare_unverified_work_complete
+    - install_unreviewed_skills
+
+inputs:
+  - user_goal
+  - guardian_preflight
+  - project_overlay
+  - available_agents
+  - skill_registry
+  - tool_registry
+
+responsibilities:
+  - normalize_goal
+  - identify_constraints
+  - build_task_graph
+  - classify_dependencies
+  - detect_capability_gaps
+  - invoke_skill_scout_when_needed
+  - select_minimum_agent_set
+  - assign_minimum_permissions
+  - parallelize_independent_tasks
+  - maintain_budget_and_revision_limits
+  - route_results_to_verifier
+  - escalate_policy_questions_to_guardian
+  - trigger_recovery_on_repeated_failure
+  - stop_when_acceptance_criteria_are_met
+
+planning_output:
+  required:
+    - mission_id
+    - tasks
+    - dependencies
+    - agents
+    - skills
+    - tools
+    - risk_levels
+    - acceptance_criteria
+    - verification_plan
+
+routing_rules:
+  - If a required capability is absent, call skill_scout before inventing a new skill.
+  - If a task is deterministic, prefer a tool over spawning an agent.
+  - If a capability is reusable, prefer a skill over embedding instructions in a worker prompt.
+  - Independent tasks may run in parallel only if their writes cannot conflict.
+  - A failed verification routes to revision or replanning, never directly to COMPLETE.
+  - Repeated failure beyond max_revision_loops routes to recovery or human escalation.
+
+completion_gate:
+  require_verifier_pass: true
+  require_guardian_postflight: true
+  require_observer_trace_complete: true
