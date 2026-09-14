@@ -2,16 +2,18 @@ apiVersion: agentos/v1
 kind: SkillContract
 metadata:
   name: skill-manifest
-  version: 1.0.0
+  version: 1.1.0
 
 required:
   - id
   - name
   - version
   - source
+  - provenance
   - capabilities
   - permissions
   - verification
+  - decision
 
 fields:
   id: string
@@ -21,14 +23,18 @@ fields:
   source:
     type: github|local|registry
     repository: string
-    revision: commit_sha|tag
+    revision: commit_sha|immutable_release
     path: string|null
     upstream: string|null
   provenance:
+    proposal_id: string|null
     author: string|null
     license: string|null
     discovered_by: string
+    curated_by: string|null
     discovered_at: iso8601
+    curated_at: iso8601|null
+    source_lock: string|null
   compatibility:
     runtimes: [string]
     frameworks: [string]
@@ -51,16 +57,19 @@ fields:
     dependencies_reviewed: boolean
     tests_present: boolean
     tests_passed: boolean
+    permission_boundary_tests_passed: boolean
     integrity_pinned: boolean
-    reviewer: string|null
+    verifier: string|null
+    verification_reference: string|null
   quality:
     maintenance_signal: low|medium|high|unknown
     documentation_signal: low|medium|high|unknown
     test_signal: low|medium|high|unknown
     adoption_signal: low|medium|high|unknown
   decision:
-    status: proposed|approved|rejected|quarantined
-    guardian_reference: string|null
+    status: proposed|approved_for_curation|curated|verified|approved|rejected|quarantined
+    guardian_proposal_reference: string|null
+    guardian_registration_reference: string|null
 
 rules:
   - A GitHub branch name alone is not an integrity boundary; approved external skills should pin a commit SHA or immutable release.
@@ -68,3 +77,6 @@ rules:
   - No discovered code may execute during discovery.
   - Installation hooks and dependency scripts require explicit review.
   - A skill asking for more permissions than its advertised capability requires must be rejected or revised.
+  - Curation must preserve the approved source revision and may not expand approved capability or permissions.
+  - Verification and Guardian registration approval are required before activation.
+  - Scout, Curator and Verifier roles must remain logically independent for the same supply-chain decision.
