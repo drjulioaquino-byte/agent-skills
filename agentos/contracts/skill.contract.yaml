@@ -1,0 +1,70 @@
+apiVersion: agentos/v1
+kind: SkillContract
+metadata:
+  name: skill-manifest
+  version: 1.0.0
+
+required:
+  - id
+  - name
+  - version
+  - source
+  - capabilities
+  - permissions
+  - verification
+
+fields:
+  id: string
+  name: string
+  version: semver|string
+  description: string
+  source:
+    type: github|local|registry
+    repository: string
+    revision: commit_sha|tag
+    path: string|null
+    upstream: string|null
+  provenance:
+    author: string|null
+    license: string|null
+    discovered_by: string
+    discovered_at: iso8601
+  compatibility:
+    runtimes: [string]
+    frameworks: [string]
+    operating_systems: [string]
+  capabilities: [string]
+  tools_required: [string]
+  permissions:
+    filesystem: none|read|write
+    network: none|restricted|unrestricted
+    shell: none|restricted|unrestricted
+    secrets: none|references_only
+    external_write: false
+  risk:
+    level: L0|L1|L2|L3|L4
+    reasons: [string]
+  verification:
+    source_reviewed: boolean
+    license_reviewed: boolean
+    install_hooks_reviewed: boolean
+    dependencies_reviewed: boolean
+    tests_present: boolean
+    tests_passed: boolean
+    integrity_pinned: boolean
+    reviewer: string|null
+  quality:
+    maintenance_signal: low|medium|high|unknown
+    documentation_signal: low|medium|high|unknown
+    test_signal: low|medium|high|unknown
+    adoption_signal: low|medium|high|unknown
+  decision:
+    status: proposed|approved|rejected|quarantined
+    guardian_reference: string|null
+
+rules:
+  - A GitHub branch name alone is not an integrity boundary; approved external skills should pin a commit SHA or immutable release.
+  - Stars and popularity are signals, not trust guarantees.
+  - No discovered code may execute during discovery.
+  - Installation hooks and dependency scripts require explicit review.
+  - A skill asking for more permissions than its advertised capability requires must be rejected or revised.
