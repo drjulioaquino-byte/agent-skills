@@ -29,9 +29,49 @@ O objetivo não é manter muitos agentes ativos. O núcleo permanente deve ser p
 - Red Team
 - Operator / DevOps
 - Researcher
-- Skill Scout
+- **Skill Scout** — pesquisa e propõe fontes/candidatos; nunca instala ou adapta.
+- **Skill Curator** — transforma somente uma proposta aprovada em pacote AgentOS normalizado; nunca autoaprova ou registra.
 - Domain Experts
 - Recovery Agent
+
+## Cadeia segura de aquisição de skills
+
+```text
+CAPABILITY GAP
+      ↓
+SKILL SCOUT
+  pesquisa / compara / propõe
+      ↓
+SKILL_PROPOSAL
+      ↓
+GUARDIAN — SOURCE GATE
+  APPROVED_FOR_CURATION
+      ↓
+SKILL CURATOR
+  normaliza / minimiza / empacota / cria testes
+      ↓
+SKILL_PACKAGE_CANDIDATE
+      ↓
+VERIFIER — PACKAGE GATE
+  PASS
+      ↓
+GUARDIAN — REGISTRATION GATE
+  APPROVED
+      ↓
+SKILL REGISTRY
+      ↓
+AGENT FACTORY / WORKERS
+```
+
+### Separação de autoridade
+
+- **Scout não cura**: não executa, adapta, empacota, instala ou registra.
+- **Curator não escolhe outra fonte**: trabalha somente com repositório, revisão, escopo e teto de permissões aprovados.
+- **Curator não autoaprova**: seu pacote obrigatoriamente vai para Verifier e depois Guardian.
+- **Verifier não ativa**: PASS é evidência técnica, não concessão de autoridade.
+- **Guardian possui dois gates**: aprova a fonte antes da curadoria e o pacote final antes da ativação.
+
+Se a curadoria descobrir que precisa ampliar capacidade, trocar revisão ou pedir permissões adicionais, o fluxo volta ao Scout e um novo `SKILL_PROPOSAL` é obrigatório.
 
 ## Ciclo padrão
 
@@ -46,7 +86,19 @@ PLAN / TASK GRAPH
   ↓
 CAPABILITY GAP CHECK
   ├─ nenhuma lacuna → segue
-  └─ lacuna → SKILL SCOUT → GUARDIAN REVIEW → registro da skill
+  └─ lacuna
+       ↓
+     SKILL SCOUT
+       ↓
+     GUARDIAN SOURCE REVIEW
+       ↓
+     SKILL CURATOR
+       ↓
+     VERIFIER (skill_package)
+       ↓
+     GUARDIAN REGISTRATION REVIEW
+       ↓
+     SKILL REGISTRY
   ↓
 WORKER(S)
   ↓
@@ -75,19 +127,42 @@ agentos/
 ├── agents/
 │   ├── orchestrator.agent.yaml
 │   ├── skill-scout.agent.yaml
+│   ├── skill-curator.agent.yaml
 │   └── verifier.agent.yaml
 ├── constitution/
 │   └── guardian.policy.yaml
 ├── contracts/
 │   ├── message.contract.yaml
+│   ├── skill-proposal.contract.yaml
 │   └── skill.contract.yaml
+├── templates/
+│   └── skill.package.yaml
 └── workflows/
     └── default.workflow.yaml
 ```
 
+## Pacote canônico de skill
+
+O Curator deve produzir algo equivalente a:
+
+```text
+skills/<skill-id>/
+├── SKILL.md
+├── manifest.yaml
+├── SOURCE.lock.yaml
+├── tests/
+└── references/
+```
+
+`SOURCE.lock.yaml` mantém a procedência imutável. `manifest.yaml` declara capacidades, ferramentas e permissões. Os testes demonstram que a skill funciona dentro do limite constitucional aprovado.
+
 ## Regra de ouro do Skill Scout
 
-O Skill Scout **não instala** skills. Ele descobre, classifica, compara, audita e produz uma proposta. Toda incorporação passa por Guardian e por verificação de origem, licença, permissões, integridade e testes.
+O Skill Scout **não instala** skills. Ele descobre, classifica, compara, audita e produz uma proposta. Toda incorporação passa por Guardian, Curator, Verifier e uma segunda decisão do Guardian.
+
+## Regra de ouro do Skill Curator
+
+O Curator pode **reduzir** escopo e permissões para tornar uma skill mais segura, mas nunca ampliá-los. Expansão exige nova descoberta e nova aprovação.
 
 ## Portabilidade
 
