@@ -1,0 +1,54 @@
+apiVersion: agentos/v1
+kind: ProjectOverlay
+metadata:
+  project: CHANGE_ME
+  version: 1.0.0
+
+project:
+  description: ""
+  stack: []
+  environments: [development]
+  critical_assets: []
+  protected_paths: []
+
+agents:
+  enabled_specialists: []
+  disabled_agents: []
+
+skills:
+  allowlist: []
+  denylist: []
+  project_local_path: .agentos/skills
+  discovery:
+    enabled: true
+    github: true
+    scheduled_refresh: false
+    refresh_query_profile: project_specific
+
+permissions:
+  default_max_risk: L1
+  production_max_risk_without_human: L2
+  tool_overrides: {}
+
+policies:
+  additional_paths: [.agentos/policies]
+  human_approval_required_for:
+    - production_deploy
+    - destructive_data_change
+    - secret_rotation
+    - guardian_constitution_change
+
+verification:
+  required_checks: []
+  test_commands: []
+  acceptance_criteria: []
+
+memory:
+  project_namespace: CHANGE_ME
+  retention_rules: []
+  forbidden_content:
+    - raw_secrets
+
+observability:
+  trace_namespace: CHANGE_ME
+  cost_budget: null
