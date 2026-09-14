@@ -1,0 +1,65 @@
+apiVersion: agentos/v1
+kind: SkillPackageTemplate
+metadata:
+  version: 1.0.0
+
+package:
+  root: skills/<skill-id>/
+  expected_files:
+    - SKILL.md
+    - manifest.yaml
+    - SOURCE.lock.yaml
+    - tests/
+    - references/
+
+manifest:
+  contract: ../../agentos/contracts/skill.contract.yaml
+  fields:
+    id: <skill-id>
+    name: <human-readable-name>
+    version: 0.1.0
+    description: <bounded-capability-description>
+    source:
+      type: github
+      repository: <owner/repo>
+      revision: <immutable-commit-or-release>
+      path: <optional-upstream-path>
+    provenance:
+      proposal_id: <proposal-id>
+      discovered_by: skill_scout
+      curated_by: skill_curator
+    capabilities:
+      - <capability>
+    permissions:
+      filesystem: none
+      network: none
+      shell: none
+      secrets: none
+      external_write: false
+
+source_lock:
+  repository: <owner/repo>
+  revision: <immutable-commit-or-release>
+  license: <license>
+  integrity:
+    commit_sha: <sha-if-applicable>
+    content_hashes: {}
+
+verification_plan:
+  required:
+    - positive_tests
+    - negative_tests
+    - permission_boundary_tests
+  conditional:
+    external_content:
+      - prompt_injection_tests
+    tool_execution:
+      - timeout_tests
+      - failure_tests
+      - side_effect_tests
+
+activation:
+  default: disabled
+  requires:
+    - verifier_pass
+    - guardian_registration_approval
